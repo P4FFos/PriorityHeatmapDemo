@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olivieri Priority Market Heatmap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #050507;
+      --bg-panel: rgba(20, 22, 30, 0.6);
+      --bg-card: rgba(30, 32, 40, 0.4);
+      --accent-gold: #D4AF37;
+      --accent-gold-dim: #8a7020;
+      --accent-blue: #4A90E2;
+      --text-main: #F0F2F5;
+      --text-muted: #8B949E;
+      --border-light: rgba(255, 255, 255, 0.08);
+      --glass-blur: blur(20px);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 8px;
+      --font-sans: 'Comfortaa', sans-serif;
+      --font-serif: 'Comfortaa', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background-color: var(--bg-dark);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(74, 144, 226, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(212, 175, 55, 0.05) 0%, transparent 40%);
+      color: var(--text-main);
+      padding: 32px;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .app-container {
+      max-width: 1800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+    }
+
+    .brand h1 {
+      font-family: var(--font-serif);
+      font-size: 42px;
+      margin: 0;
+      background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      color: var(--text-muted);
+      margin: 8px 0 0;
+      font-size: 16px;
+      max-width: 600px;
+      line-height: 1.5;
+    }
+
+    .kpi-row {
+      display: flex;
+      gap: 24px;
+    }
+
+    .kpi-card {
+      background: radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.12), rgba(74, 144, 226, 0.04));
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px 20px;
+      border-radius: 18px;
+      min-width: 170px;
+      transition: transform 0.2s, border-color 0.2s;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 0 1 200px;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(212, 175, 55, 0.4);
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kpi-badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--accent-gold);
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #f7d87a;
+      font-family: var(--font-serif);
+      line-height: 1.1;
+    }
+
+    .kpi-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+    }
+
+    /* Main Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr 450px;
+      gap: 24px;
+      height: calc(95vh - 160px);
+      min-height: 600px;
+    }
+
+    /* Sidebar Controls */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      height: 100%;
+    }
+
+    .control-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .quick-guide-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .guide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .guide-top {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .guide-callout {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(74, 144, 226, 0.08));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #f5e6b3;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 0 0 8px;
+    }
+
+    .toggle-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toggle-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+    }
+
+    .toggle-btn.active {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: var(--accent-gold-dim);
+      color: var(--accent-gold);
+    }
+
+    .toggle-btn .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    /* Heatmap Area */
+    .heatmap-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .market-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 140px;
+    }
+
+    .market-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      background: rgba(255, 255, 255, 0.06);
+      z-index: 2;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .market-card.selected {
+      border-color: var(--accent-gold);
+      background: rgba(212, 175, 55, 0.05);
+      box-shadow: 0 0 0 1px var(--accent-gold);
+    }
+
+    .market-card .rank {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .market-card .name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .market-card .region {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .market-card .score-bar {
+      margin-top: auto;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .market-card .score-fill {
+      height: 100%;
+      background: var(--accent-gold);
+      transition: width 0.5s ease-out;
+    }
+
+    /* Detail View */
+    .detail-view {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      overflow-y: auto;
+      backdrop-filter: blur(40px);
+    }
+
+    .detail-header {
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 24px;
+    }
+
+    .detail-header h2 {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      margin: 0 0 8px;
+      color: var(--text-main);
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--border-light);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tag.priority-Top {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .tag.priority-Medium {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: rgba(74, 144, 226, 0.1);
+    }
+
+    .section-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .metric-box {
+      background: var(--bg-card);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+    }
+
+    .metric-box .label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .metric-box .value {
+      font-size: 20px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+    }
+
+    .partners-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .partner-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .partner-item:hover {
+      border-color: var(--border-light);
+    }
+
+    .partner-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .partner-revenue {
+      color: var(--accent-gold);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .profit-label {
+      color: #7ed321;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .chart-container {
+      height: 120px;
+      margin-top: 16px;
+      position: relative;
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+      body {
+        padding: 20px;
+      }
+
+      .app-container {
+        max-width: 1400px;
+        gap: 24px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 260px 1fr 340px;
+        gap: 16px;
+      }
+
+      header {
+        gap: 16px;
+      }
+
+      .kpi-row {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .kpi-card {
+        flex: 1 1 180px;
+        min-width: 0;
+      }
+
+      .control-panel,
+      .detail-view {
+        padding: 20px;
+      }
+
+      .detail-view {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 1280px) {
+      body {
+        padding: 14px;
+      }
+
+      .brand h1 {
+        font-size: 36px;
+      }
+
+      .app-container {
+        gap: 18px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 240px 1fr 320px;
+        gap: 12px;
+        height: calc(95vh - 120px);
+      }
+
+      .control-panel,
+      .detail-view {
+        padding: 18px;
+      }
+
+      .kpi-row {
+        gap: 10px;
+      }
+
+      .kpi-card {
+        padding: 14px 16px;
+        border-radius: 14px;
+        flex: 1 1 160px;
+      }
+
+      .kpi-value {
+        font-size: 22px;
+      }
+
+      .panel-title,
+      .toggle-btn,
+      .partner-item span,
+      .section-title {
+        font-size: 13px;
+      }
+
+      .heatmap-container {
+        padding: 18px;
+      }
+
+      .detail-header h2 {
+        font-size: 28px;
+      }
+
+      .section-title {
+        margin: 18px 0 12px;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 250px 1fr;
+        grid-template-rows: auto auto;
+        height: auto;
+      }
+
+      .detail-view {
+        grid-column: 1 / -1;
+        min-height: 500px;
+      }
+    }
+
+    @media (max-width: 800px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .kpi-row {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 8px;
+      }
+    }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+    const {
+      LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
+      Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+      BarChart, Bar, Cell,
+      ScatterChart, Scatter, ZAxis, CartesianGrid, Legend
+    } = Recharts;
+
+    // --- Data Model ---
+    const rawData = [
+      { id: "nyc", name: "New York", country: "USA", region: "North America", priority: "Top", diaspora: 92, recipe: 82, social: 79, trend: [48, 52, 55, 60, 66, 70, 75], partners: ["Eataly", "Whole Foods", "Le District"], opportunities: ["Holiday gifting spikes", "Dense diaspora"], channels: { retail: 36, ecom: 28, inf: 21, hosp: 15 }, storeDensity: "High", internalDemand: 85, marketSize: 12, saturation: 60 },
+      { id: "toronto", name: "Toronto", country: "Canada", region: "North America", priority: "Medium", diaspora: 78, recipe: 74, social: 65, trend: [44, 46, 48, 50, 55, 58, 60], partners: ["Pusateri's", "Fortinos"], opportunities: ["Artisanal interest", "Winter demand"], channels: { retail: 33, ecom: 29, inf: 18, hosp: 20 }, storeDensity: "Med", internalDemand: 60, marketSize: 5, saturation: 40 },
+      { id: "mexico", name: "Mexico City", country: "Mexico", region: "LatAm", priority: "Top", diaspora: 55, recipe: 81, social: 82, trend: [38, 42, 46, 52, 58, 63, 68], partners: ["Ojo de Agua", "Cielito Café"], opportunities: ["#panettone growth", "Premium gifting"], channels: { retail: 29, ecom: 24, inf: 29, hosp: 18 }, storeDensity: "Low", internalDemand: 45, marketSize: 8, saturation: 30 },
+      { id: "sp", name: "São Paulo", country: "Brazil", region: "LatAm", priority: "Top", diaspora: 88, recipe: 76, social: 73, trend: [42, 45, 50, 56, 61, 66, 72], partners: ["Pão de Açúcar", "Empório Santa Maria"], opportunities: ["Coffee culture pairing", "Wedding gifting"], channels: { retail: 37, ecom: 25, inf: 21, hosp: 17 }, storeDensity: "High", internalDemand: 78, marketSize: 15, saturation: 75 },
+      { id: "london", name: "London", country: "UK", region: "Europe", priority: "Top", diaspora: 83, recipe: 86, social: 81, trend: [55, 59, 63, 67, 71, 74, 78], partners: ["Selfridges", "Harrods", "Soho House"], opportunities: ["Luxury department stores", "Influencer collabs"], channels: { retail: 31, ecom: 32, inf: 22, hosp: 15 }, storeDensity: "High", internalDemand: 90, marketSize: 10, saturation: 80 },
+      { id: "paris", name: "Paris", country: "France", region: "Europe", priority: "Medium", diaspora: 62, recipe: 80, social: 66, trend: [46, 49, 52, 55, 58, 61, 64], partners: ["La Grande Épicerie", "Galeries Lafayette"], opportunities: ["Tourist gifting", "Pâtisserie culture"], channels: { retail: 28, ecom: 31, inf: 23, hosp: 18 }, storeDensity: "Med", internalDemand: 55, marketSize: 7, saturation: 70 },
+      { id: "berlin", name: "Berlin", country: "Germany", region: "Europe", priority: "Low", diaspora: 41, recipe: 62, social: 64, trend: [35, 36, 38, 40, 42, 44, 46], partners: ["Zeit für Brot", "Bite Club"], opportunities: ["Vegan options", "Concept stores"], channels: { retail: 26, ecom: 29, inf: 28, hosp: 17 }, storeDensity: "Low", internalDemand: 30, marketSize: 4, saturation: 20 },
+      { id: "dubai", name: "Dubai", country: "UAE", region: "Middle East", priority: "Medium", diaspora: 52, recipe: 69, social: 71, trend: [40, 44, 48, 52, 57, 61, 64], partners: ["Carrefour Gourmet", "Emirates Catering"], opportunities: ["Luxury gifting", "Hotel channels"], channels: { retail: 30, ecom: 22, inf: 30, hosp: 18 }, storeDensity: "Low", internalDemand: 40, marketSize: 6, saturation: 35 },
+      { id: "mumbai", name: "Mumbai", country: "India", region: "Asia", priority: "Medium", diaspora: 47, recipe: 72, social: 77, trend: [36, 40, 44, 49, 53, 57, 61], partners: ["Foodhall", "Blue Tokai"], opportunities: ["Festival gifting", "Young demographic"], channels: { retail: 27, ecom: 30, inf: 26, hosp: 17 }, storeDensity: "Low", internalDemand: 25, marketSize: 18, saturation: 15 },
+      { id: "melbourne", name: "Melbourne", country: "Australia", region: "Oceania", priority: "Top", diaspora: 73, recipe: 81, social: 79, trend: [41, 45, 49, 54, 59, 64, 68], partners: ["Market Lane", "Queen Vic Market"], opportunities: ["Café culture", "Seasonal drops"], channels: { retail: 35, ecom: 30, inf: 20, hosp: 15 }, storeDensity: "Med", internalDemand: 65, marketSize: 4, saturation: 50 },
+      { id: "tokyo", name: "Tokyo", country: "Japan", region: "Asia", priority: "Low", diaspora: 25, recipe: 85, social: 60, trend: [30, 32, 35, 38, 40, 42, 45], partners: ["Dean & DeLuca", "Isetan"], opportunities: ["Premium packaging", "Limited editions"], channels: { retail: 40, ecom: 25, inf: 15, hosp: 20 }, storeDensity: "Low", internalDemand: 35, marketSize: 9, saturation: 55 },
+      { id: "milan", name: "Milan", country: "Italy", region: "Europe", priority: "Low", diaspora: 99, recipe: 95, social: 50, trend: [80, 80, 80, 80, 80, 80, 80], partners: ["Internal"], opportunities: ["Saturation", "Maintain share"], channels: { retail: 50, ecom: 10, inf: 10, hosp: 30 }, storeDensity: "V.High", internalDemand: 95, marketSize: 20, saturation: 90 },
+      { id: "seoul", name: "Seoul", country: "South Korea", region: "Asia", priority: "Medium", diaspora: 58, recipe: 78, social: 83, trend: [42, 46, 50, 55, 60, 66, 70], partners: ["Shinsegae", "Cafe Onion"], opportunities: ["Giftable packaging", "Cafe collabs"], channels: { retail: 30, ecom: 34, inf: 22, hosp: 14 }, storeDensity: "Med", internalDemand: 58, marketSize: 11, saturation: 45 },
+      { id: "madrid", name: "Madrid", country: "Spain", region: "Europe", priority: "Medium", diaspora: 57, recipe: 74, social: 69, trend: [40, 43, 47, 52, 56, 59, 63], partners: ["El Corte Inglés", "Mercado de San Miguel"], opportunities: ["Tourist gifting", "Bakery tie-ins"], channels: { retail: 29, ecom: 27, inf: 21, hosp: 23 }, storeDensity: "Med", internalDemand: 50, marketSize: 6, saturation: 60 },
+      { id: "rome", name: "Rome", country: "Italy", region: "Europe", priority: "Low", diaspora: 91, recipe: 88, social: 55, trend: [72, 72, 73, 73, 74, 74, 75], partners: ["Eataly Roma"], opportunities: ["Local heritage", "Maintain loyalty"], channels: { retail: 44, ecom: 15, inf: 12, hosp: 29 }, storeDensity: "High", internalDemand: 88, marketSize: 9, saturation: 85 },
+      { id: "bangkok", name: "Bangkok", country: "Thailand", region: "Asia", priority: "Medium", diaspora: 34, recipe: 70, social: 72, trend: [33, 36, 40, 45, 49, 53, 58], partners: ["Central Food Hall", "Dean & DeLuca TH"], opportunities: ["Airport gifting", "Cafe culture"], channels: { retail: 24, ecom: 26, inf: 28, hosp: 22 }, storeDensity: "Med", internalDemand: 38, marketSize: 7, saturation: 35 },
+      { id: "johannesburg", name: "Johannesburg", country: "South Africa", region: "Africa", priority: "Low", diaspora: 45, recipe: 60, social: 58, trend: [28, 30, 32, 35, 38, 40, 42], partners: ["Woolworths", "Checkers Sixty60"], opportunities: ["Gifting hampers", "Retail pilots"], channels: { retail: 22, ecom: 20, inf: 18, hosp: 15 }, storeDensity: "Med", internalDemand: 33, marketSize: 5, saturation: 25 },
+      { id: "singapore", name: "Singapore", country: "Singapore", region: "Asia", priority: "Top", diaspora: 69, recipe: 86, social: 84, trend: [48, 52, 57, 63, 68, 72, 77], partners: ["Cold Storage", "RedMart"], opportunities: ["Premium gifting", "Airport retail"], channels: { retail: 34, ecom: 32, inf: 24, hosp: 18 }, storeDensity: "High", internalDemand: 76, marketSize: 12, saturation: 55 },
+      { id: "abu_dhabi", name: "Abu Dhabi", country: "UAE", region: "Middle East", priority: "Medium", diaspora: 51, recipe: 68, social: 64, trend: [37, 40, 43, 47, 51, 54, 58], partners: ["Waitrose UAE", "Spinneys"], opportunities: ["Luxury hampers", "Hotel gifting"], channels: { retail: 28, ecom: 21, inf: 23, hosp: 24 }, storeDensity: "Low", internalDemand: 47, marketSize: 9, saturation: 28 },
+      { id: "athens", name: "Athens", country: "Greece", region: "Europe", priority: "Low", diaspora: 32, recipe: 58, social: 44, trend: [24, 26, 28, 30, 32, 34, 36], partners: ["AB Vassilopoulos"], opportunities: ["Tourist gifting", "Cafe pilots"], channels: { retail: 22, ecom: 20, inf: 18, hosp: 15 }, storeDensity: "Med", internalDemand: 28, marketSize: 6, saturation: 30 },
+      { id: "lagos", name: "Lagos", country: "Nigeria", region: "Africa", priority: "Low", diaspora: 18, recipe: 42, social: 38, trend: [18, 19, 20, 22, 24, 26, 28], partners: ["Shoprite"], opportunities: ["Holiday hampers", "Modern trade tests"], channels: { retail: 16, ecom: 14, inf: 10, hosp: 12 }, storeDensity: "Low", internalDemand: 20, marketSize: 10, saturation: 18 },
+      { id: "hanoi", name: "Hanoi", country: "Vietnam", region: "Asia", priority: "Low", diaspora: 21, recipe: 50, social: 46, trend: [22, 24, 26, 28, 30, 32, 34], partners: ["Lotte Mart"], opportunities: ["Airport gifting", "Cafe pairings"], channels: { retail: 18, ecom: 20, inf: 16, hosp: 14 }, storeDensity: "Med", internalDemand: 22, marketSize: 8, saturation: 22 },
+      { id: "warsaw", name: "Warsaw", country: "Poland", region: "Europe", priority: "Low", diaspora: 35, recipe: 55, social: 47, trend: [26, 28, 30, 33, 36, 38, 40], partners: ["Alma Market"], opportunities: ["Specialty retail", "Holiday seasonals"], channels: { retail: 24, ecom: 22, inf: 18, hosp: 16 }, storeDensity: "Med", internalDemand: 30, marketSize: 7, saturation: 32 },
+    ];
+
+    // --- Components ---
+
+    const Sparkline = ({ data, color }) => (
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data.map((v, i) => ({ i, v }))}>
+          <Line type="monotone" dataKey="v" stroke={color} strokeWidth={2} dot={false} />
+          <Tooltip contentStyle={{ background: '#1c1f2a', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+
+    const KPICard = ({ label, value, hint }) => (
+      <div className="kpi-card">
+        <div className="kpi-label">
+          {label}
+          <span className="kpi-badge">Live</span>
+        </div>
+        <div className="kpi-value">{value}</div>
+        {hint && <div className="kpi-subtext">{hint}</div>}
+      </div>
+    );
+
+    const Toggle = ({ label, active, onClick }) => (
+      <button className={`toggle-btn ${active ? 'active' : ''}`} onClick={onClick}>
+        <span>{label}</span>
+        <div className="indicator" />
+      </button>
+    );
+
+    const MarketCard = ({ market, score, selected, onClick }) => (
+      <div className={`market-card ${selected ? 'selected' : ''}`} onClick={onClick}>
+        <div className="rank">#{Math.round(score)}</div>
+        <div>
+          <div className="name">{market.name}</div>
+          <div className="region">{market.country}</div>
+        </div>
+        <div className="score-bar">
+          <div className="score-fill" style={{ width: `${score}%` }} />
+        </div>
+      </div>
+    );
+
+    const DetailView = ({ market, score }) => {
+      if (!market) return <div className="detail-view">Select a market to view details</div>;
+
+      const radarData = [
+        { subject: 'Diaspora', A: market.diaspora, fullMark: 100 },
+        { subject: 'Recipe', A: market.recipe, fullMark: 100 },
+        { subject: 'Social', A: market.social, fullMark: 100 },
+        { subject: 'Demand', A: market.internalDemand, fullMark: 100 },
+        { subject: 'Saturation', A: market.saturation, fullMark: 100 },
+      ];
+
+      const channelData = [
+        { name: 'Retail', val: market.channels.retail },
+        { name: 'E-com', val: market.channels.ecom },
+        { name: 'Influencer', val: market.channels.inf },
+        { name: 'Hospitality', val: market.channels.hosp },
+      ];
+
+      return (
+        <div className="detail-view">
+          <div className="detail-header">
+            <div className="tag-row" style={{ marginBottom: 12 }}>
+              <span className={`tag priority-${market.priority}`}>{market.priority} Priority</span>
+              <span className="tag">{market.region}</span>
+            </div>
+            <h2>{market.name}, {market.country}</h2>
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>
+              Composite Score: <strong style={{ color: 'var(--accent-gold)' }}>{Math.round(score)}/100</strong>
+            </p>
+          </div>
+
+          <div className="section-title">Market Profile (Radar)</div>
+          <div className="chart-container" style={{ height: 200 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#8B949E', fontSize: 10 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar name={market.name} dataKey="A" stroke="#D4AF37" fill="#D4AF37" fillOpacity={0.3} />
+                <Tooltip contentStyle={{ background: '#1c1f2a', border: 'none' }} itemStyle={{ color: '#fff' }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="section-title">Channel Strategy</div>
+          <div className="chart-container" style={{ height: 160 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={channelData} layout="vertical" margin={{ left: 20 }}>
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" width={80} tick={{ fill: '#8B949E', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: '#1c1f2a', border: 'none' }} itemStyle={{ color: '#fff' }} />
+                <Bar dataKey="val" fill="#4A90E2" radius={[0, 4, 4, 0]} barSize={16}>
+                  {channelData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#D4AF37' : '#4A90E2'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="section-title">Performance Metrics</div>
+          <div className="metrics-grid">
+            <div className="metric-box">
+              <span className="label">Diaspora Density</span>
+              <span className="value">{market.diaspora}%</span>
+            </div>
+            <div className="metric-box">
+              <span className="label">Recipe Interest</span>
+              <span className="value">{market.recipe}%</span>
+            </div>
+            <div className="metric-box">
+              <span className="label">Social Buzz</span>
+              <span className="value">{market.social}%</span>
+            </div>
+            <div className="metric-box">
+              <span className="label">Growth Trend</span>
+              <span className="value" style={{ color: '#4caf50' }}>+{market.trend[market.trend.length - 1] - market.trend[0]}%</span>
+            </div>
+          </div>
+
+          <div className="section-title">Market Intelligence</div>
+          <div className="metrics-grid">
+            <div className="metric-box">
+              <span className="label">Internal Demand</span>
+              <span className="value">{market.internalDemand}/100</span>
+            </div>
+            <div className="metric-box">
+              <span className="label">Store Density</span>
+              <span className="value">{market.storeDensity}</span>
+            </div>
+            <div className="metric-box">
+              <span className="label">Est. Market Size</span>
+              <span className="value">${market.marketSize}M</span>
+            </div>
+            <div className="metric-box">
+              <span className="label">Saturation</span>
+              <span className="value">{market.saturation}%</span>
+            </div>
+          </div>
+
+          <div className="section-title">Search Trend (Last 7 Weeks)</div>
+          <div className="chart-container">
+            <Sparkline data={market.trend} color="#D4AF37" />
+          </div>
+
+          <div className="section-title">Recommended Partners</div>
+          <div className="partners-list">
+            {market.partners.map((p, idx) => {
+              const base = 0.28 - idx * 0.06;
+              const factor = Math.max(0.12, base);
+              const estRevenue = `$${(market.marketSize * factor).toFixed(1)}M`;
+
+              return (
+                <div key={p} className="partner-item">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div className="partner-icon">{p[0]}</div>
+                    <span>{p}</span>
+                  </div>
+                  <span className="partner-revenue">
+                    <span className="profit-label">Potential profit</span>
+                    +{estRevenue}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [weights, setWeights] = useState({ diaspora: 1, recipe: 1, social: 1 });
+      const [selectedId, setSelectedId] = useState("nyc");
+      const [filter, setFilter] = useState("All");
+
+      const renderDot = (props) => {
+        const { cx, cy, payload, fill } = props;
+        const isSelected = payload.id === selectedId;
+        const radius = isSelected ? 9 : 7;
+
+        return (
+          <g>
+            <circle cx={cx} cy={cy} r={radius} fill={fill} stroke={isSelected ? '#fff' : 'none'} strokeWidth={isSelected ? 2 : 0} />
+            <circle cx={cx} cy={cy} r={radius + 4} fill="transparent" stroke={fill} strokeOpacity={0.35} />
+          </g>
+        );
+      };
+
+      // Logic: Calculate Score
+      const scoredMarkets = useMemo(() => {
+        return rawData.map(m => {
+          const totalWeight = weights.diaspora + weights.recipe + weights.social;
+          const rawScore = (m.diaspora * weights.diaspora + m.recipe * weights.recipe + m.social * weights.social) / (totalWeight || 1);
+          const boost = m.priority === 'Top' ? 10 : m.priority === 'Medium' ? 5 : 0;
+          return { ...m, score: Math.min(100, rawScore + boost) };
+        }).sort((a, b) => b.score - a.score);
+      }, [weights]);
+
+      const filteredMarkets = useMemo(() => {
+        if (filter === "All") return scoredMarkets;
+        return scoredMarkets.filter(m => m.priority === filter);
+      }, [scoredMarkets, filter]);
+
+      const selectedMarket = scoredMarkets.find(m => m.id === selectedId);
+
+      const toggleWeight = (key) => {
+        setWeights(prev => ({ ...prev, [key]: prev[key] === 1 ? 0 : 1 }));
+      };
+
+      return (
+        <div className="app-container">
+          <header>
+            <div className="brand">
+              <h1>Olivieri Priority Market Heatmap</h1>
+            </div>
+            <div className="kpi-row">
+              <KPICard
+                label="Top Market"
+                value={scoredMarkets[0].name}
+              />
+              <KPICard
+                label="Avg Score"
+                value={Math.round(scoredMarkets.reduce((a, b) => a + b.score, 0) / scoredMarkets.length)}
+              />
+              <KPICard
+                label="Active Regions"
+                value={new Set(rawData.map(m => m.region)).size}
+              />
+            </div>
+          </header>
+
+          <div className="dashboard-grid">
+            {/* Left Sidebar */}
+            <aside className="sidebar">
+              <div className="control-panel">
+                <div className="panel-title">Data Layers</div>
+                <div className="toggle-group">
+                  <Toggle label="Diaspora Density" active={weights.diaspora} onClick={() => toggleWeight('diaspora')} />
+                  <Toggle label="Recipe Interest" active={weights.recipe} onClick={() => toggleWeight('recipe')} />
+                  <Toggle label="Social Buzz" active={weights.social} onClick={() => toggleWeight('social')} />
+                </div>
+              </div>
+
+              <div className="control-panel">
+                <div className="panel-title">Filter Priority</div>
+                <div className="toggle-group">
+                  {['All', 'Top', 'Medium', 'Low'].map(f => (
+                    <Toggle key={f} label={f} active={filter === f} onClick={() => setFilter(f)} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="control-panel quick-guide-panel">
+                <div className="panel-title">Quick Guide</div>
+                <div className="guide-content" style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>
+                  <div className="guide-top">
+                    <div><strong>1.</strong> Click any point to open its full market profile.</div>
+                    <div><strong>2.</strong> Toggle layers to instantly reweight the composite score.</div>
+                    <div><strong>3.</strong> Use priority filters to focus on the most relevant cluster.</div>
+                    <div><strong>4.</strong> Hover points to preview size + score quickly.</div>
+                  </div>
+                  <div style={{ height: 1, background: 'var(--border-light)', margin: '10px 0 6px' }} />
+                  <div style={{ color: '#fff', fontWeight: 600, fontSize: 12, letterSpacing: 0.02 }}>Legend</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#D4AF37', boxShadow: '0 0 8px #D4AF37' }}></span>
+                    <span>Top priority markets</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#4A90E2', boxShadow: '0 0 8px #4A90E2' }}></span>
+                    <span>Medium priority markets</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#8B949E', boxShadow: '0 0 8px #8B949E' }}></span>
+                    <span>Low priority markets</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #fff' }}></span>
+                    <span>Highlighted point = selected market</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Heatmap -> Scatter Plot */}
+            <main className="heatmap-container">
+              <div className="panel-title" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+                <span>Strategic Landscape (Size vs Fit)</span>
+                <span>{filteredMarkets.length} Markets</span>
+              </div>
+
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 20, right: 40, bottom: 20, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis
+                      type="number"
+                      dataKey="marketSize"
+                      name="Market Size"
+                      unit="M"
+                      tick={{ fill: '#8B949E', fontSize: 12 }}
+                      tickLine={false}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                      label={{ value: 'Market Size ($M)', position: 'insideBottomRight', offset: -10, fill: '#8B949E', fontSize: 12 }}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="score"
+                      name="Score"
+                      domain={[0, 100]}
+                      tick={{ fill: '#8B949E', fontSize: 12 }}
+                      tickLine={false}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                      label={{ value: 'Composite Score', angle: -90, position: 'insideLeft', fill: '#8B949E', fontSize: 12 }}
+                    />
+                    <Tooltip
+                      cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.3)' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div style={{ background: 'rgba(20, 22, 30, 0.9)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '12px', backdropFilter: 'blur(10px)' }}>
+                              <div style={{ color: '#fff', fontWeight: 600, marginBottom: 4 }}>{data.name}</div>
+                              <div style={{ color: '#D4AF37', fontSize: 12 }}>Score: {Math.round(data.score)}</div>
+                              <div style={{ color: '#8B949E', fontSize: 12 }}>Size: ${data.marketSize}M</div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Scatter
+                      name="Markets"
+                      data={filteredMarkets}
+                      onClick={(p) => setSelectedId(p.id)}
+                      shape={renderDot}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {filteredMarkets.map((entry, index) => {
+                        const isSelected = selectedId === entry.id;
+                        return (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.priority === 'Top' ? '#D4AF37' : entry.priority === 'Medium' ? '#4A90E2' : '#8B949E'}
+                            stroke={isSelected ? '#fff' : 'none'}
+                            strokeWidth={2}
+                          />
+                        );
+                      })}
+                    </Scatter>
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+            </main>
+
+            {/* Right Detail View */}
+            <DetailView market={selectedMarket} score={selectedMarket?.score} />
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>
